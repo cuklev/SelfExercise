@@ -1,3 +1,5 @@
+import System.Random
+
 data Tree = Nil | Node Tree Tree Int
 
 add :: Tree -> Int -> Tree
@@ -18,9 +20,6 @@ each Nil = []
 each (Node left right value) = (each left) ++ (value : each right)
 
 
-
-
-
 sizeof :: Tree -> Int
 sizeof Nil = 0
 sizeof (Node left right _) = sizeof left + sizeof right + 1
@@ -32,13 +31,15 @@ heightof (Node left right _) = max (heightof left) (heightof right) + 1
 rebalance :: Tree -> Tree
 rebalance Nil = Nil
 rebalance node@(Node left right value)
-            | balance node < -1 = rotateLeft (if balance left > 0 then (Node left (rotateRight right) value) else node)
-            | balance node >  1 = rotateRight (if balance right < 0 then (Node (rotateLeft left) right value) else node)
+            | balanceof node < -1 && balanceof right > 0 = rotateLeft $ Node left (rotateRight right) value
+            | balanceof node < -1 = rotateLeft node
+            | balanceof node >  1 && balanceof left < 0 = rotateRight $ Node (rotateLeft left) right value
+            | balanceof node >  1 = rotateRight node
             | otherwise = node
 
-balance :: Tree -> Int
-balance Nil = 0
-balance (Node left right _) = heightof left - heightof right
+balanceof :: Tree -> Int
+balanceof Nil = 0
+balanceof (Node left right _) = heightof left - heightof right
 
 rotateLeft :: Tree -> Tree
 rotateLeft Nil = Nil
@@ -50,7 +51,15 @@ rotateRight (Node (Node ll lr lv) right value) = Node ll (Node lr right value) l
 
 
 main = do
-    let tree = foldl add Nil [1..10000]
+    numbers <- generate 10000 1 1000000
+    let tree = foldl add Nil numbers
     putStrLn $ "Size of tree: " ++ show (sizeof tree)
     putStrLn $ "Height of tree: " ++ show (heightof tree)
+    --print numbers
     --print $ each tree
+
+generate 0 _ _ = return []
+generate n left right = do
+            x <- randomRIO (left, right)
+            y <- generate (n - 1) left right
+            return (x : y)
