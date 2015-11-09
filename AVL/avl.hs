@@ -32,8 +32,8 @@ heightof (Node left right _) = max (heightof left) (heightof right) + 1
 rebalance :: Tree -> Tree
 rebalance Nil = Nil
 rebalance node@(Node left right value)
-            | balance node < -1 = rotateLeft (if balance left > 0 then rotateRight node else node)
-            | balance node >  1 = rotateRight (if balance right < 0 then rotateLeft node else node)
+            | balance node < -1 = rotateLeft (if balance left > 0 then (Node left (rotateRight right) value) else node)
+            | balance node >  1 = rotateRight (if balance right < 0 then (Node (rotateLeft left) right value) else node)
             | otherwise = node
 
 balance :: Tree -> Int
