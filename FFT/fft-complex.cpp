@@ -1,3 +1,5 @@
+// This program multiplies two numbers using fast fourier transform
+
 #include<iostream>
 #include<cmath>
 #include<complex>
