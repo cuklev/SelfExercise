@@ -1,6 +1,12 @@
-Avl trees in Haskell (just because)
+# Avl trees
 
-TODO:
+## C++
+
+**TODO**
+
+## Haskell (just because)
+
+**TODO**:
 * ~~add, contains, ...~~
 * ~~balancing~~
 * remove
