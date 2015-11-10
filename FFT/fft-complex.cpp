@@ -51,8 +51,6 @@ void fft(Samples &X, int bits, bool reverse = false)
 				w *= root;
 			}
 		}
-
-		root *= root;
 	}
 }
 
