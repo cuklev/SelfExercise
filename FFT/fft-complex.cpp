@@ -5,11 +5,11 @@
 #include<complex>
 #include<vector>
 
-const unsigned Mask1 = 0b01010101010101010101010101010101;
-const unsigned Mask2 = 0b00110011001100110011001100110011;
-const unsigned Mask3 = 0b00001111000011110000111100001111;
-const unsigned Mask4 = 0b00000000111111110000000011111111;
-const unsigned Mask5 = 0b00000000000000001111111111111111;
+const unsigned Mask1 = 0x55555555;
+const unsigned Mask2 = 0x33333333;
+const unsigned Mask3 = 0x0F0F0F0F;
+const unsigned Mask4 = 0x00FF00FF;
+const unsigned Mask5 = 0x0000FFFF;
 
 inline unsigned reverse_bits(unsigned x, int bits)
 {
