@@ -36,11 +36,9 @@ constexpr uint64_t search()
 {
 	for(uint64_t root = 1; ; ++root)
 	{
-		if(PowMod(root, MOD / 2) == 1)
-			continue;
 		if(PowMod(root, MOD / K) == 1)
 			continue;
-		if(PowMod(root, MOD - 1) != 1)
+		if(PowMod(root, MOD / 2) != MOD - 1)
 			continue;
 		return root;
 	}
