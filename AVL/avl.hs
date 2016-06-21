@@ -50,7 +50,8 @@ insert :: (Ord a) => Tree a -> a -> Tree a
 insert Nil x = single x
 insert tree x
     | x < value tree = balanceL $ tree `updateL` insert (left tree) x
-    | otherwise      = balanceR $ tree `updateR` insert (right tree) x
+    | x > value tree = balanceR $ tree `updateR` insert (right tree) x
+    | otherwise      = tree
 
 contains :: (Ord a) => Tree a -> a -> Bool
 Nil `contains` _ = False
