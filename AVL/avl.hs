@@ -1,66 +1,88 @@
-import System.Random
+data Tree a = Nil | Node { value :: a
+                         , left :: Tree a
+                         , right :: Tree a
+                         , size :: Int
+                         , height :: Int
+                         } deriving Show
 
-data Tree a = Nil | Node (Tree a) (Tree a) a
+-- Helpers
+sizeOf :: Tree a -> Int
+sizeOf Nil = 0
+sizeOf tree = size tree
 
-add :: Ord a => Tree a -> a -> Tree a
-add Nil value = Node Nil Nil value
-add (Node left right x) value
-            | value < x = rebalance $ Node (add left value) right x
-            | otherwise = rebalance $ Node left (add right value) x
+heightOf :: Tree a -> Int
+heightOf Nil = 0
+heightOf tree = height tree
 
-contains :: Ord a => Tree a -> a -> Bool
-contains Nil _ = False
-contains (Node left right x) value
-            | value < x = contains left value
-            | value > x = contains right value
-            | otherwise = True
+balanceOf :: Tree a -> Int
+balanceOf tree = heightOf (left tree) - heightOf (right tree)
 
-each :: Tree a -> [a]
-each Nil = []
-each (Node left right value) = each left ++ value : each right
+update :: Tree a -> Tree a
+update tree = tree
+    { size   = (sizeOf $ left tree) + (sizeOf $ right tree) + 1
+    , height = max (heightOf $ left tree) (heightOf $ right tree) + 1
+    }
 
+updateL :: Tree a -> Tree a -> Tree a
+updateL tree leftTree = update tree { left = leftTree }
 
-sizeof :: Tree a -> Int
-sizeof Nil = 0
-sizeof (Node left right _) = sizeof left + sizeof right + 1
+updateR :: Tree a -> Tree a -> Tree a
+updateR tree rightTree = update tree { right = rightTree }
 
-heightof :: Tree a -> Int
-heightof Nil = 0
-heightof (Node left right _) = max (heightof left) (heightof right) + 1
+-- Basic stuff
+single :: a -> Tree a
+single x = Node { value = x
+                , left = Nil
+                , right = Nil
+                , size = 1
+                , height = 1
+                }
 
-rebalance :: Tree a -> Tree a
-rebalance Nil = Nil
-rebalance node@(Node left right value)
-            | balanceof node < -1 && balanceof right > 0 = rotateLeft $ Node left (rotateRight right) value
-            | balanceof node < -1 = rotateLeft node
-            | balanceof node >  1 && balanceof left < 0 = rotateRight $ Node (rotateLeft left) right value
-            | balanceof node >  1 = rotateRight node
-            | otherwise = node
+toList :: Tree a -> [a]
+toList Nil = []
+toList tree = toList (left tree) ++ [value tree] ++ toList (right tree)
 
-balanceof :: Tree a -> Int
-balanceof Nil = 0
-balanceof (Node left right _) = heightof left - heightof right
+-- Tree operations
+push :: (Ord a) => Tree a -> a -> Tree a
+push Nil x = single x
+push tree x
+    | x < value tree = balanceL $ tree `updateL` push (left tree) x
+    | otherwise      = balanceR $ tree `updateR` push (right tree) x
 
-rotateLeft :: Tree a -> Tree a
-rotateLeft Nil = Nil
-rotateLeft (Node left (Node rl rr rv) value) = Node (Node left rl value) rr rv
+contains :: (Ord a) => Tree a -> a -> Bool
+Nil `contains` _ = False
+tree `contains` x
+    | x < value tree = left tree `contains` x
+    | x > value tree = right tree `contains` x
+    | otherwise      = True
 
-rotateRight :: Tree a -> Tree a
-rotateRight Nil = Nil
-rotateRight (Node (Node ll lr lv) right value) = Node ll (Node lr right value) lv
+-- Rotations
+rotateL :: Tree a -> Tree a
+rotateL tree = let root = right tree
+                   leftTree = tree `updateR` left root
+               in root `updateL` leftTree
 
+rotateR :: Tree a -> Tree a
+rotateR tree = let root = left tree
+                   rightTree = tree `updateL` right root
+               in root `updateR` rightTree
 
-main = do
-    numbers <- generate 1000 1 1000000
-    let tree = foldl add Nil numbers
-    putStrLn $ "Size of tree: " ++ show (sizeof tree)
-    putStrLn $ "Height of tree: " ++ show (heightof tree)
-    --print numbers
-    --print $ each tree
+-- Balance - left is higher
+balanceL :: Tree a -> Tree a
+balanceL tree
+    | imbal     = rotateR $ if imbalL
+                            then tree `updateL` (rotateL $ left tree)
+                            else tree
+    | otherwise = tree
+    where imbal = balanceOf tree > 1
+          imbalL = balanceOf (left tree) < 0
 
-generate :: Int -> Int -> Int -> IO [Int]
-generate 0 _ _ = return []
-generate n left right = do
-            x <- randomRIO (left, right)
-            y <- generate (n - 1) left right
-            return (x : y)
+-- Balance - right is higher
+balanceR :: Tree a -> Tree a
+balanceR tree
+    | imbal     = rotateL $ if imbalR
+                            then tree `updateR` (rotateR $ right tree)
+                            else tree
+    | otherwise = tree
+    where imbal = balanceOf tree < -1
+          imbalR = balanceOf (right tree) > 0
