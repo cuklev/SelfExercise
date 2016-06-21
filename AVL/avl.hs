@@ -42,6 +42,9 @@ toList :: Tree a -> [a]
 toList Nil = []
 toList tree = toList (left tree) ++ [value tree] ++ toList (right tree)
 
+fromList :: (Ord a) => [a] -> Tree a
+fromList = foldl push Nil
+
 -- Tree operations
 push :: (Ord a) => Tree a -> a -> Tree a
 push Nil x = single x
@@ -55,6 +58,13 @@ tree `contains` x
     | x < value tree = left tree `contains` x
     | x > value tree = right tree `contains` x
     | otherwise      = True
+
+atIndex :: (Ord a) => Tree a -> Int -> a
+tree `atIndex` ind
+    | ind < currInd = left tree `atIndex` ind
+    | ind > currInd = right tree `atIndex` (ind - currInd - 1)
+    | otherwise     = value tree
+    where currInd = sizeOf $ left tree
 
 -- Rotations
 rotateL :: Tree a -> Tree a
