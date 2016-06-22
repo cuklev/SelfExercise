@@ -61,7 +61,7 @@ erase tree x
     | otherwise      = case right tree of
                          Nil -> left tree
                          _   -> let (rtree, inorder) = erase' $ right tree
-                                in balanceL $ ((inorder `updateL` left tree) `updateR` rtree)
+                                in balanceL $ (inorder `updateL` left tree) `updateR` rtree
                        where erase' tree = case left tree of
                                              Nil -> (right tree, tree)
                                              _   -> let (ltree, inorder) = erase' $ left tree
