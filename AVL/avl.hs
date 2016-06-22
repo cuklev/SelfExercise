@@ -1,9 +1,22 @@
+module Avl
+( fromList
+, toList
+, insert
+, erase
+, contains
+, indexOf
+, atIndex
+, sizeOf
+, heightOf
+, Tree
+) where
+
 data Tree a = Nil | Node { value :: a
                          , left :: Tree a
                          , right :: Tree a
                          , size :: Int
                          , height :: Int
-                         } deriving Show
+                         }
 
 -- Helpers
 sizeOf :: Tree a -> Int
