@@ -61,43 +61,43 @@ fromList = foldl insert Nil
 -- Tree operations
 insert :: (Ord a) => Tree a -> a -> Tree a
 insert Nil x = single x
-insert tree x
-    | x < value tree = balanceL $ tree `updateL` insert (left tree) x
-    | x > value tree = balanceR $ tree `updateR` insert (right tree) x
-    | otherwise      = tree
+insert tree x = case x `compare` value tree of
+    LT -> balanceL $ tree `updateL` insert (left tree) x
+    GT -> balanceR $ tree `updateR` insert (right tree) x
+    _  -> tree
 
 erase :: (Ord a) => Tree a -> a -> Tree a
 erase Nil _ = Nil
-erase tree x
-    | x < value tree = balanceR $ tree `updateL` erase (left tree) x
-    | x > value tree = balanceL $ tree `updateR` erase (right tree) x
-    | otherwise      = case right tree of
-                         Nil -> left tree
-                         _   -> let (rtree, inorder) = erase' $ right tree
-                                in balanceL $ (inorder `updateL` left tree) `updateR` rtree
-                       where erase' tree = case left tree of
-                                             Nil -> (right tree, tree)
-                                             _   -> let (ltree, inorder) = erase' $ left tree
-                                                    in (balanceR $ tree `updateL` ltree, inorder)
+erase tree x = case x `compare` value tree of
+    LT -> balanceR $ tree `updateL` erase (left tree) x
+    GT -> balanceL $ tree `updateR` erase (right tree) x
+    _  -> case right tree of
+            Nil -> left tree
+            _   -> let (rtree, inorder) = erase' $ right tree
+                   in balanceL $ (inorder `updateL` left tree) `updateR` rtree
+          where erase' tree = case left tree of
+                                Nil -> (right tree, tree)
+                                _   -> let (ltree, inorder) = erase' $ left tree
+                                       in (balanceR $ tree `updateL` ltree, inorder)
 
 contains :: (Ord a) => Tree a -> a -> Bool
 Nil `contains` _ = False
-tree `contains` x
-    | x < value tree = left tree `contains` x
-    | x > value tree = right tree `contains` x
-    | otherwise      = True
+tree `contains` x = case x `compare` value tree of
+    LT -> left tree `contains` x
+    GT -> right tree `contains` x
+    _  -> True
 
 indexOf :: (Ord a) => Tree a -> a -> Int
-tree `indexOf` x
-    | x < value tree = left tree `indexOf` x
-    | x > value tree = sizeOf (left tree) + 1 + right tree `indexOf` x
-    | otherwise      = sizeOf $ left tree
+tree `indexOf` x = case x `compare` value tree of
+    LT -> left tree `indexOf` x
+    GT -> sizeOf (left tree) + 1 + right tree `indexOf` x
+    _  -> sizeOf $ left tree
 
 atIndex :: (Ord a) => Tree a -> Int -> a
-tree `atIndex` ind
-    | ind < currInd = left tree `atIndex` ind
-    | ind > currInd = right tree `atIndex` (ind - currInd - 1)
-    | otherwise     = value tree
+tree `atIndex` ind = case ind `compare` currInd of
+    LT -> left tree `atIndex` ind
+    GT -> right tree `atIndex` (ind - currInd - 1)
+    _  -> value tree
     where currInd = sizeOf $ left tree
 
 -- Rotations
