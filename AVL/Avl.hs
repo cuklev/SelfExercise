@@ -122,7 +122,7 @@ rotateR tree = let root = left tree
 balanceL :: Tree a -> Tree a
 balanceL tree
     | imbal     = rotateR $ if imbalL
-                            then tree `updateL` (rotateL $ left tree)
+                            then tree `updateL` rotateL (left tree)
                             else tree
     | otherwise = tree
     where imbal = balanceOf tree > 1
@@ -132,7 +132,7 @@ balanceL tree
 balanceR :: Tree a -> Tree a
 balanceR tree
     | imbal     = rotateL $ if imbalR
-                            then tree `updateR` (rotateR $ right tree)
+                            then tree `updateR` rotateR (right tree)
                             else tree
     | otherwise = tree
     where imbal = balanceOf tree < -1
