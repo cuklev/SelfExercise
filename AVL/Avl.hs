@@ -18,6 +18,13 @@ data Tree a = Nil | Node { value :: a
                          , height :: Int
                          }
 
+instance (Show a) => Show (Tree a) where
+    show tree = unlines $ show' tree 0
+        where show' Nil _ = []
+              show' tree h = show' (left tree) (h + 1)
+                             ++ [replicate (h * 4) ' ' ++ "(" ++ show (value tree) ++ ")"]
+                             ++ show' (right tree) (h + 1)
+
 -- Helpers
 sizeOf :: Tree a -> Int
 sizeOf Nil = 0
