@@ -53,6 +53,20 @@ insert tree x
     | x > value tree = balanceR $ tree `updateR` insert (right tree) x
     | otherwise      = tree
 
+erase :: (Ord a) => Tree a -> a -> Tree a
+erase Nil _ = Nil
+erase tree x
+    | x < value tree = balanceR $ tree `updateL` erase (left tree) x
+    | x > value tree = balanceL $ tree `updateR` erase (right tree) x
+    | otherwise      = case right tree of
+                         Nil -> left tree
+                         _   -> let (rtree, inorder) = erase' $ right tree
+                                in balanceL $ ((inorder `updateL` left tree) `updateR` rtree)
+                       where erase' tree = case left tree of
+                                             Nil -> (right tree, tree)
+                                             _   -> let (ltree, inorder) = erase' $ left tree
+                                                    in (balanceR $ tree `updateL` ltree, inorder)
+
 contains :: (Ord a) => Tree a -> a -> Bool
 Nil `contains` _ = False
 tree `contains` x
