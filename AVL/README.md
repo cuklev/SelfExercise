@@ -10,5 +10,5 @@
 * ~~add, contains, ...~~
 * ~~balancing~~
 * ~~generic~~
-* remove
-* optimize size and height calculations
+* ~~remove~~
+* ~~optimize size and height calculations~~
