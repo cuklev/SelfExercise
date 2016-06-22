@@ -8,7 +8,7 @@ module Avl
 , atIndex
 , sizeOf
 , heightOf
-, Tree
+, Tree(Nil)
 ) where
 
 data Tree a = Nil | Node { value :: a
