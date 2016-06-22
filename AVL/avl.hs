@@ -74,6 +74,12 @@ tree `contains` x
     | x > value tree = right tree `contains` x
     | otherwise      = True
 
+indexOf :: (Ord a) => Tree a -> a -> Int
+tree `indexOf` x
+    | x < value tree = left tree `indexOf` x
+    | x > value tree = sizeOf (left tree) + 1 + right tree `indexOf` x
+    | otherwise      = sizeOf $ left tree
+
 atIndex :: (Ord a) => Tree a -> Int -> a
 tree `atIndex` ind
     | ind < currInd = left tree `atIndex` ind
