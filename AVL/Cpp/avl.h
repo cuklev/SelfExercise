@@ -9,6 +9,70 @@ class Avl {
 
 		Node *root;
 
+		int size(Node *x)
+		{
+			return x ? x->size : 0;
+		}
+
+		int height(Node *x)
+		{
+			return x ? x->height : 0;
+		}
+
+		void update(Node *x)
+		{
+			x->size = size(x->left) + size(x->right) + 1;
+			int lh = height(x->left), rh = height(x->right);
+			x->height = (lh > rh ? lh : rh) + 1;
+		}
+
+		int balance(Node *x)
+		{
+			return height(x->left) - height(x->right);
+		}
+
+		void rotateLeft(Node *&x)
+		{
+			auto y = x->right;
+			x->right = y->left;
+			update(x);
+			y->left = x;
+			x = y;
+			update(x);
+		}
+
+		void rotateRight(Node *&x)
+		{
+			auto y = x->left;
+			x->left = y->right;
+			update(x);
+			y->right = x;
+			x = y;
+			update(x);
+		}
+
+		void balanceLeft(Node *&x)
+		{
+			update(x);
+			if(balance(x) > 1)
+			{
+				if(balance(x->left) < 0)
+					rotateLeft(x->left);
+				rotateRight(x);
+			}
+		}
+
+		void balanceRight(Node *&x)
+		{
+			update(x);
+			if(balance(x) < -1)
+			{
+				if(balance(x->right) > 0)
+					rotateRight(x->right);
+				rotateLeft(x);
+			}
+		}
+
 		bool insert(Node *&x, const T &value)
 		{
 			if(!x)
@@ -18,10 +82,18 @@ class Avl {
 			}
 
 			if(value < x->value)
-				return insert(x->left, value);
+			{
+				bool f = insert(x->left, value);
+				balanceLeft(x);
+				return f;
+			}
 
 			if(x->value < value)
-				return insert(x->right, value);
+			{
+				bool f = insert(x->right, value);
+				balanceRight(x);
+				return f;
+			}
 
 			return false;
 		}
@@ -35,7 +107,9 @@ class Avl {
 				return y;
 			}
 
-			return get_leftmost(x->left);
+			auto y = get_leftmost(x->left);
+			balanceRight(x);
+			return y;
 		}
 
 		bool erase(Node *&x, const T &value)
@@ -44,10 +118,18 @@ class Avl {
 				return false;
 
 			if(value < x->value)
-				return erase(x->left, value);
+			{
+				bool f = erase(x->left, value);
+				balanceRight(x);
+				return f;
+			}
 
 			if(x->value < value)
-				return erase(x->right, value);
+			{
+				bool f = erase(x->right, value);
+				balanceLeft(x);
+				return f;
+			}
 
 			if(!x->right)
 			{
@@ -62,6 +144,7 @@ class Avl {
 				y->right = x->right;
 				delete x;
 				x = y;
+				balanceLeft(x);
 			}
 
 			return true;
@@ -82,6 +165,16 @@ class Avl {
 		Avl()
 		{
 			root = nullptr;
+		}
+
+		int size()
+		{
+			return size(root);
+		}
+
+		int height()
+		{
+			return height(root);
 		}
 
 		Node* find(const T &value)

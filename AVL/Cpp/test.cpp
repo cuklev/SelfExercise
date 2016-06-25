@@ -5,15 +5,8 @@
 int main()
 {
 	Avl<int> tree;
-	tree.insert(5);
-	tree.insert(1);
-	tree.insert(2);
-	tree.insert(4);
-	tree.insert(7);
-	tree.insert(6);
-	tree.insert(0);
+	for(int i = 0; i < 1000000; ++i)
+		tree.insert(i);
 
-	tree.foreach([](int x) {
-		std::cout << x << ' ';
-	});
+	std::cout << tree.size() << ' ' << tree.height() << '\n';
 }
