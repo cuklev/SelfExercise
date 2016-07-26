@@ -3,7 +3,6 @@ using System;
 namespace DataStructures.PersistentIndexedTree
 {
 	public class PersistentIndexedTree<T>
-		where T : new()
 	{
 		private T value;
 
@@ -11,7 +10,7 @@ namespace DataStructures.PersistentIndexedTree
 
 		private PersistentIndexedTree<T> left;
 		private PersistentIndexedTree<T> right;
-		
+
 		private Func<T, T, T> function;
 
 		private PersistentIndexedTree(T value, Func<T, T, T> f)
@@ -34,7 +33,7 @@ namespace DataStructures.PersistentIndexedTree
 			this.right = right;
 		}
 
-		public PersistentIndexedTree(int levels, Func<T, T, T> f)
+		public PersistentIndexedTree(int levels, Func<T, T, T> f, T default_value)
 		{
 			if(levels < 0 || levels > 63) // ulong has 64 bits, 63 just in case
 			{
@@ -44,18 +43,21 @@ namespace DataStructures.PersistentIndexedTree
 			this.level = levels;
 			this.function = f;
 
-			this.value = new T();
-
 			if(levels == 0)
 			{
+				this.value = default_value;
+
 				this.left = null;
 				this.right = null;
 
 				return;
 			}
 
-			this.left = new PersistentIndexedTree<T>(levels - 1, f);
-			this.right = this.left;
+			var child = new PersistentIndexedTree<T>(levels - 1, f, default_value);
+			this.value = f(child.value, child.value);
+
+			this.left = child;
+			this.right = child;
 		}
 
 		public PersistentIndexedTree<T> Update(ulong index, T value)
@@ -71,7 +73,7 @@ namespace DataStructures.PersistentIndexedTree
 				{
 					throw new IndexOutOfRangeException("Index too large");
 				}
-				
+
 				return new PersistentIndexedTree<T>(value, this.function);
 			}
 
@@ -100,7 +102,7 @@ namespace DataStructures.PersistentIndexedTree
 				{
 					throw new IndexOutOfRangeException("Index too large");
 				}
-				
+
 				return this.value;
 			}
 
