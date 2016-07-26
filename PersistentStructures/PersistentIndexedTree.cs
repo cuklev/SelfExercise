@@ -35,7 +35,7 @@ namespace DataStructures.PersistentIndexedTree
 
 		public PersistentIndexedTree(int levels, Func<T, T, T> f, T default_value)
 		{
-			if(levels < 0 || levels > 63) // ulong has 64 bits, 63 just in case
+			if(levels < 0 || levels > 62) // long has 64 bits, 62 just in case
 			{
 				throw new IndexOutOfRangeException("Invalid number of levels");
 			}
@@ -60,7 +60,7 @@ namespace DataStructures.PersistentIndexedTree
 			this.right = child;
 		}
 
-		public PersistentIndexedTree<T> Update(ulong index, T value)
+		public PersistentIndexedTree<T> Update(long index, T value)
 		{
 			if(index < 0)
 			{
@@ -77,7 +77,7 @@ namespace DataStructures.PersistentIndexedTree
 				return new PersistentIndexedTree<T>(value, this.function);
 			}
 
-			ulong middle = 1UL << (this.level - 1);
+			long middle = 1L << (this.level - 1);
 
 			if(index < middle)
 			{
@@ -89,7 +89,7 @@ namespace DataStructures.PersistentIndexedTree
 			}
 		}
 
-		public T AtIndex(ulong index)
+		public T AtIndex(long index)
 		{
 			if(index < 0)
 			{
@@ -106,7 +106,7 @@ namespace DataStructures.PersistentIndexedTree
 				return this.value;
 			}
 
-			ulong middle = 1UL << (this.level - 1);
+			long middle = 1L << (this.level - 1);
 
 			if(index < middle)
 			{
@@ -118,16 +118,16 @@ namespace DataStructures.PersistentIndexedTree
 			}
 		}
 
-		public T Query(ulong from, ulong to)
+		public T Query(long from, long to)
 		{
 			// TODO: validations
 
-			if(from == 0UL && to == (1UL << this.level))
+			if(from == 0L && to == (1L << this.level))
 			{
 				return this.value;
 			}
 
-			ulong middle = 1UL << (this.level - 1);
+			long middle = 1L << (this.level - 1);
 
 			if(to <= middle)
 			{
