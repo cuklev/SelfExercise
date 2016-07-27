@@ -37,6 +37,10 @@ flatten (List []) = []
 flatten (List (Elem x:xs)) = x : flatten (List xs)
 flatten (List (x:xs)) = flatten x ++ flatten (List xs)
 
+flatten' :: NestedList a -> [a]
+flatten' (Elem x) = [x]
+flatten' (List xs) = xs >>= flatten'
+
 -- problem 8
 compress :: Eq a => [a] -> [a]
 compress [] = []
