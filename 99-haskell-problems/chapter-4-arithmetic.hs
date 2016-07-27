@@ -3,19 +3,19 @@ isPrime :: Integral a => a -> Bool
 isPrime n = and $ map (\d -> n `mod` d /= 0) $ takeWhile (\x -> x * x <= n) [2..]
 
 -- problem 32
---myGCD :: Integral a => a -> a -> a
+myGCD :: Integral a => a -> a -> a
 myGCD a 0 | a < 0     = -a
           | otherwise = a
 myGCD a b = myGCD b (a `mod` b)
 
 -- problem 33
---coprime :: Integral a => a -> a -> Bool
+coprime :: Integral a => a -> a -> Bool
 coprime x = (==1) . myGCD x
 
 -- problem 34
 totient :: Int -> Int
 totient 1 = 1
-totient n = myLength $ [() | x <- [1..n-1], coprime x n]
+totient n = length $ [() | x <- [1..n-1], coprime x n]
 
 -- problem 35
 primeFactors :: Integral a => a -> [a]
