@@ -54,7 +54,7 @@ slice (_:xs) s c = slice xs (s - 1) (c - 1)
 rotate :: [a] -> Int -> [a]
 rotate x 0 = x
 rotate x c = (\(a, b) -> b ++ a) $ split x $ rc
-    where len = myLength x
+    where len = length x
           mc = c `mod` len
           rc = if mc < 0 then mc + len else mc
 
