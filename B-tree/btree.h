@@ -28,8 +28,13 @@ class BTree {
 			size_(0) {
 			}
 
-		using branch = std::optional<std::pair<T, Node*>>;
+		class iterator;
 
+	private:
+		using branch = std::optional<std::pair<T, Node*>>;
+		using ResultType = std::pair<iterator, bool>;
+
+	public:
 		class iterator {
 			private:
 				using ValuePtr = std::pair<Node*, unsigned>;
@@ -69,6 +74,7 @@ class BTree {
 
 				friend iterator BTree<T, D>::begin();
 				friend iterator BTree<T, D>::end();
+				friend branch BTree<T, D>::insert(Node* node, const T& value, ResultType& result);
 		};
 
 		iterator begin() {
@@ -84,13 +90,15 @@ class BTree {
 		}
 
 	private:
-		branch insert(Node* node, const T& value) {
+		branch insert(Node* node, const T& value, ResultType& result) {
 			auto it = std::lower_bound(node->values.begin(), node->values.end(), value);
+			auto index = it - node->values.begin();
+			result.first.stack.push_back({node, index});
+
 			if(it == node->values.end() || *it != value) {
 				if(auto middle_node = dynamic_cast<MiddleNode*>(node)) {
-					auto index = it - middle_node->values.begin();
 					auto child_it = middle_node->children.begin() + index;
-					if(auto b = insert(*child_it, value)) {
+					if(auto b = insert(*child_it, value, result)) {
 						middle_node->values.insert(std::move(it), b->first);
 						middle_node->children.insert(middle_node->children.begin() + index + 1, b->second);
 						if(middle_node->values.size() > D) {
@@ -112,6 +120,7 @@ class BTree {
 					}
 				} else { // Leaf
 					node->values.insert(it, value);
+					result.second = true;
 					if(node->values.size() > D) {
 						auto split = new Leaf;
 						auto middle_index = D / 2;
@@ -131,15 +140,19 @@ class BTree {
 		}
 
 	public:
-		void insert(const T& value) {
+		ResultType insert(const T& value) {
+			ResultType result;
 			if(root_ == nullptr)
 				root_ = new Leaf;
-			if(auto b = insert(root_, value)) {
+			if(auto b = insert(root_, value, result)) {
 				auto new_root = new MiddleNode;
 				new_root->values.push_back(std::move(b->first));
 				new_root->children.push_back(root_);
 				new_root->children.push_back(b->second);
 				root_ = new_root;
 			}
+			if(result.second)
+				++size_;
+			return result;
 		}
 };
