@@ -29,4 +29,12 @@ int main() {
 		std::cout << ' ' << *it;
 	}
 	std::cout << '\n';
+
+	std::cout << (tree.lower_bound(0) == tree.begin()) << '\n';
+	std::cout << (tree.lower_bound(9) == tree.end()) << '\n';
+	std::cout << (tree.lower_bound(10) == tree.end()) << '\n';
+
+	std::cout << (tree.find(0) == tree.begin()) << '\n';
+	std::cout << (tree.find(9) == tree.end()) << '\n';
+	std::cout << (tree.find(10) == tree.end()) << '\n';
 }

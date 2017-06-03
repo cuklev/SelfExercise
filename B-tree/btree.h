@@ -75,6 +75,7 @@ class BTree {
 				friend iterator BTree<T, D>::begin();
 				friend iterator BTree<T, D>::end();
 				friend branch BTree<T, D>::insert(Node* node, const T& value, ResultType& result);
+				friend iterator BTree<T, D>::lower_bound(const T&);
 		};
 
 		iterator begin() {
@@ -154,5 +155,33 @@ class BTree {
 			if(result.second)
 				++size_;
 			return result;
+		}
+
+		iterator lower_bound(const T& value) {
+			iterator result;
+			if(root_ == nullptr)
+				return end();
+
+			Node* node = root_;
+			while(true) {
+				auto it = std::lower_bound(node->values.begin(), node->values.end(), value);
+				auto index = it - node->values.begin();
+				result.stack.push_back({node, index});
+				if(it != node->values.end() && *it == value) break;
+				if(auto middle_node = dynamic_cast<MiddleNode*>(node)) {
+					node = middle_node->children[index];
+				} else {
+					while(result.stack.size() > 1 && result.stack.back().second == result.stack.back().first->values.size())
+						result.stack.pop_back();
+					break;
+				}
+			}
+
+			return result;
+		}
+
+		iterator find(const T& value) {
+			auto it = lower_bound(value);
+			return *it == value ? it : end();
 		}
 };
