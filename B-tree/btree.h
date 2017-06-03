@@ -44,23 +44,31 @@ class BTree {
 					++stack.back().second;
 					while(auto top = dynamic_cast<MiddleNode*>(stack.back().first))
 						stack.push_back({top->children[stack.back().second], 0});
-					while(!stack.empty() && stack.back().second == stack.back().first->values.size())
+					while(stack.size() > 1 && stack.back().second == stack.back().first->values.size())
 						stack.pop_back();
 					return *this;
 				}
 
-				friend iterator BTree<T, D>::begin();
-				friend iterator BTree<T, D>::end();
+				inline iterator& operator--() {
+					while(auto top = dynamic_cast<MiddleNode*>(stack.back().first)) {
+						auto child = top->children[stack.back().second];
+						stack.push_back({child, child->values.size()});
+					}
+					while(stack.size() > 1 && stack.back().second == 0)
+						stack.pop_back();
+					--stack.back().second;
+					return *this;
+				}
 
 				inline bool operator!=(const iterator& other) {
-					if(stack.empty() && other.stack.empty()) return false;
-					if(stack.empty() ^ other.stack.empty()) return true;
+					return stack.back() != other.stack.back();
+				}
+				inline bool operator==(const iterator& other) {
 					return stack.back() == other.stack.back();
 				}
 
-				inline bool operator==(const iterator& other) {
-					return !(this->operator!=(other));
-				}
+				friend iterator BTree<T, D>::begin();
+				friend iterator BTree<T, D>::end();
 		};
 
 		iterator begin() {
@@ -70,7 +78,9 @@ class BTree {
 		}
 
 		iterator end() {
-			return {};
+			iterator it;
+			it.stack.push_back({root_, root_ == nullptr ? 0 : root_->values.size()});
+			return it;
 		}
 
 	private:

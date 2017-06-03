@@ -23,4 +23,10 @@ int main() {
 	for(int x : tree)
 		std::cout << ' ' << x;
 	std::cout << '\n';
+
+	for(auto it = tree.end(); it != tree.begin();) {
+		--it;
+		std::cout << ' ' << *it;
+	}
+	std::cout << '\n';
 }
