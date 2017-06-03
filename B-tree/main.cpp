@@ -19,4 +19,8 @@ int main() {
 		tree.insert(x);
 	}
 	std::cout << '\n';
+
+	for(int x : tree)
+		std::cout << ' ' << x;
+	std::cout << '\n';
 }

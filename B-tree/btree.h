@@ -30,6 +30,49 @@ class BTree {
 
 		using branch = std::optional<std::pair<T, Node*>>;
 
+		class iterator {
+			private:
+				using ValuePtr = std::pair<Node*, unsigned>;
+				std::vector<ValuePtr> stack;
+
+			public:
+				inline T& operator*() {
+					return stack.back().first->values[stack.back().second];
+				}
+
+				inline iterator& operator++() {
+					++stack.back().second;
+					while(auto top = dynamic_cast<MiddleNode*>(stack.back().first))
+						stack.push_back({top->children[stack.back().second], 0});
+					while(!stack.empty() && stack.back().second == stack.back().first->values.size())
+						stack.pop_back();
+					return *this;
+				}
+
+				friend iterator BTree<T, D>::begin();
+				friend iterator BTree<T, D>::end();
+
+				inline bool operator!=(const iterator& other) {
+					if(stack.empty() && other.stack.empty()) return false;
+					if(stack.empty() ^ other.stack.empty()) return true;
+					return stack.back() == other.stack.back();
+				}
+
+				inline bool operator==(const iterator& other) {
+					return !(this->operator!=(other));
+				}
+		};
+
+		iterator begin() {
+			iterator it;
+			it.stack.push_back({root_, -1});
+			return ++it;
+		}
+
+		iterator end() {
+			return {};
+		}
+
 	private:
 		branch insert(Node* node, const T& value) {
 			auto it = std::lower_bound(node->values.begin(), node->values.end(), value);
