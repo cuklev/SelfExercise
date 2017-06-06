@@ -5,17 +5,17 @@
 template<typename T, unsigned D>
 class BTree {
 	private:
-		struct MiddleNode;
-
 		struct Node {
 			std::vector<T> values;
-			virtual ~Node() {}
-		};
-
-		using Leaf = Node;
-
-		struct MiddleNode : Node {
 			std::vector<Node*> children;
+
+			Node() {
+				values.reserve(D);
+			}
+
+			inline bool isLeaf() {
+				return children.empty();
+			}
 		};
 
 		Node* root_;
@@ -31,7 +31,7 @@ class BTree {
 		class iterator;
 
 	private:
-		using branch = std::optional<std::pair<T, Node*>>;
+		using Branch = std::optional<std::pair<T, Node*>>;
 		using ResultType = std::pair<iterator, bool>;
 
 	public:
@@ -47,16 +47,16 @@ class BTree {
 
 				inline iterator& operator++() {
 					++stack.back().second;
-					while(auto top = dynamic_cast<MiddleNode*>(stack.back().first))
-						stack.push_back({top->children[stack.back().second], 0});
+					while(!stack.back().first->isLeaf())
+						stack.push_back({stack.back().first->children[stack.back().second], 0});
 					while(stack.size() > 1 && stack.back().second == stack.back().first->values.size())
 						stack.pop_back();
 					return *this;
 				}
 
 				inline iterator& operator--() {
-					while(auto top = dynamic_cast<MiddleNode*>(stack.back().first)) {
-						auto child = top->children[stack.back().second];
+					while(!stack.back().first->isLeaf()) {
+						auto child = stack.back().first->children[stack.back().second];
 						stack.push_back({child, child->values.size()});
 					}
 					while(stack.size() > 1 && stack.back().second == 0)
@@ -74,7 +74,7 @@ class BTree {
 
 				friend iterator BTree<T, D>::begin();
 				friend iterator BTree<T, D>::end();
-				friend branch BTree<T, D>::insert(Node* node, const T& value, ResultType& result);
+				friend Branch BTree<T, D>::insert(Node*, const T&, ResultType&);
 				friend iterator BTree<T, D>::lower_bound(const T&);
 		};
 
@@ -91,48 +91,50 @@ class BTree {
 		}
 
 	private:
-		branch insert(Node* node, const T& value, ResultType& result) {
+		Branch insert(Node* node, const T& value, ResultType& result) {
 			auto it = std::lower_bound(node->values.begin(), node->values.end(), value);
 			auto index = it - node->values.begin();
 			result.first.stack.push_back({node, index});
 
 			if(it == node->values.end() || *it != value) {
-				if(auto middle_node = dynamic_cast<MiddleNode*>(node)) {
-					auto child_it = middle_node->children.begin() + index;
-					if(auto b = insert(*child_it, value, result)) {
-						middle_node->values.insert(std::move(it), b->first);
-						middle_node->children.insert(middle_node->children.begin() + index + 1, b->second);
-						if(middle_node->values.size() > D) {
-							auto split = new MiddleNode;
-							auto middle_index = D / 2;
-							auto middle_it = middle_node->values.begin() + middle_index;
-							auto middle_child_it = middle_node->children.begin() + middle_index + 1;
-
-							std::move(middle_it + 1, middle_node->values.end(),
-									std::back_inserter(split->values));
-							std::move(middle_child_it, middle_node->children.end(),
-									std::back_inserter(split->children));
-
-							branch x = {{ std::move(*middle_it), split }};
-							middle_node->values.resize(middle_index);
-							middle_node->children.resize(middle_index);
-							return x;
-						}
-					}
-				} else { // Leaf
+				if(node->isLeaf()) {
 					node->values.insert(it, value);
 					result.second = true;
 					if(node->values.size() > D) {
-						auto split = new Leaf;
+						auto split = new Node;
 						auto middle_index = D / 2;
 						auto middle_it = node->values.begin() + middle_index;
 
 						std::move(middle_it + 1, node->values.end(),
 								std::back_inserter(split->values));
 
-						branch x({ std::move(*middle_it), split });
+						Branch x({ std::move(*middle_it), split });
 						node->values.resize(middle_index);
 						return x;
+					}
+				} else {
+					auto child_it = node->children.begin() + index;
+					if(auto b = insert(*child_it, value, result)) {
+						node->values.insert(std::move(it), b->first);
+						node->children.insert(node->children.begin() + index + 1, b->second);
+						if(node->values.size() > D) {
+							auto split = new Node;
+							split->children.reserve(D + 1);
+
+							auto middle_index = D / 2;
+							auto middle_it = node->values.begin() + middle_index;
+							auto middle_child_it = node->children.begin() + middle_index + 1;
+
+							std::move(middle_it + 1, node->values.end(),
+									std::back_inserter(split->values));
+							std::move(middle_child_it, node->children.end(),
+									std::back_inserter(split->children));
+
+							Branch x = {{ std::move(*middle_it), split }};
+							node->values.resize(middle_index);
+							node->children.resize(middle_index);
+							return x;
+						}
 					}
 				}
 			}
@@ -144,9 +146,10 @@ class BTree {
 		ResultType insert(const T& value) {
 			ResultType result;
 			if(root_ == nullptr)
-				root_ = new Leaf;
+				root_ = new Node;
 			if(auto b = insert(root_, value, result)) {
-				auto new_root = new MiddleNode;
+				auto new_root = new Node;
+				new_root->children.reserve(D + 1);
 				new_root->values.push_back(std::move(b->first));
 				new_root->children.push_back(root_);
 				new_root->children.push_back(b->second);
@@ -168,12 +171,12 @@ class BTree {
 				auto index = it - node->values.begin();
 				result.stack.push_back({node, index});
 				if(it != node->values.end() && *it == value) break;
-				if(auto middle_node = dynamic_cast<MiddleNode*>(node)) {
-					node = middle_node->children[index];
-				} else {
+				if(node->isLeaf()) {
 					while(result.stack.size() > 1 && result.stack.back().second == result.stack.back().first->values.size())
 						result.stack.pop_back();
 					break;
+				} else {
+					node = node->children[index];
 				}
 			}
 
