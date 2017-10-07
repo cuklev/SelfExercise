@@ -29,12 +29,14 @@ table = [ [prefix '+' id, prefix '-' negate]
             postfix name = Postfix . reg name
             reg name f = operator name >> return f
 
+expression = buildExpressionParser table term <?> "expression"
 
-parseExpression = parse expression "expression"
-expression = do
-    r <- buildExpressionParser table term <?> "expression"
-    eof
-    return r
+parseExpression = parse wholeExpression "expression"
+    where
+        wholeExpression = do
+            r <- expression
+            eof
+            return r
 
 main = do
     expressions <- fmap lines getContents
