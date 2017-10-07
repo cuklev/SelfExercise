@@ -1,5 +1,6 @@
 {-# LANGUAGE FlexibleContexts #-}
-
+import Text.Parsec
+import Text.Parsec.Expr
 
 surroundedWithSpaces x = do
     spaces
@@ -37,6 +38,6 @@ expression = do
 
 main = do
     expressions <- fmap lines getContents
-    flip mapM expressions $ \x -> case parseExpression x of
+    flip mapM_ expressions $ \x -> case parseExpression x of
             Right result -> print result
             Left err -> print err
