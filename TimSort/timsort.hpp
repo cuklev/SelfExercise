@@ -5,10 +5,8 @@
 #include <vector>
 
 // TODO: galloping
-template <typename It, typename Cmp>
-void merge(It begin, It middle, It end, Cmp cmp) {
-	using T = std::remove_reference_t<decltype(*begin)>;
-
+template <typename It, typename B, typename Cmp>
+void merge(It begin, It middle, It end, B buffer, Cmp cmp) {
 	// do less copying
 	begin = upper_bound(begin, middle, *middle, cmp);
 	end = lower_bound(middle, end, *(middle - 1), cmp);
@@ -17,10 +15,9 @@ void merge(It begin, It middle, It end, Cmp cmp) {
 	const auto RSize = end - middle;
 
 	if(LSize <= RSize) { // left to right merging
-		auto buffer = std::make_unique<T[]>(LSize);
-		move(begin, middle, buffer.get());
+		move(begin, middle, buffer);
 
-		auto i = buffer.get();
+		auto i = buffer;
 		auto buffer_end = i + LSize;
 		auto j = middle;
 		auto k = begin;
@@ -31,11 +28,10 @@ void merge(It begin, It middle, It end, Cmp cmp) {
 		}
 		move(i, buffer_end, k);
 	} else { // right to left merging
-		auto buffer = std::make_unique<T[]>(RSize);
-		move(middle, end, buffer.get());
+		move(middle, end, buffer);
 
 		auto i = middle - 1;
-		auto buffer_start = buffer.get();
+		auto buffer_start = buffer;
 		auto j = buffer_start + RSize - 1;
 		auto k = end;
 
@@ -54,8 +50,8 @@ inline size_t get_min_run_length(size_t n) {
 }
 
 // is this correct?
-template <typename It, typename Cmp>
-void keep_invariant(std::vector<It>& runs, It end, Cmp cmp) {
+template <typename It, typename B, typename Cmp>
+void keep_invariant(std::vector<It>& runs, It end, B buffer, Cmp cmp) {
 	while(runs.size() >= 3) {
 		auto x = runs.back();
 		auto y = runs[runs.size() - 2];
@@ -65,10 +61,10 @@ void keep_invariant(std::vector<It>& runs, It end, Cmp cmp) {
 		auto z_len = y - z;
 
 		if(z_len <= y_len + x_len) {
-			merge(z, y, x, cmp);
+			merge(z, y, x, buffer, cmp);
 			runs.erase(runs.end() - 2);
 		} else if(y_len <= x_len) {
-			merge(y, x, end, cmp);
+			merge(y, x, end, buffer, cmp);
 			runs.pop_back();
 		} else {
 			break;
@@ -78,8 +74,13 @@ void keep_invariant(std::vector<It>& runs, It end, Cmp cmp) {
 
 template <typename It, typename Cmp>
 void timsort(It begin, It end, Cmp cmp) {
+	using T = std::remove_reference_t<decltype(*begin)>;
+
 	const auto N = end - begin;
 	if(N < 2) return; // nothing to sort
+
+	// buffer for merging, allocate once
+	auto buffer = std::make_unique<T[]>(N / 2);
 
 	const size_t MinRunLength = get_min_run_length(N);
 
@@ -90,7 +91,7 @@ void timsort(It begin, It end, Cmp cmp) {
 		auto run_begin = it;
 		runs.push_back(it);
 		if(end - it == 1) {
-			keep_invariant(runs, end, cmp);
+			keep_invariant(runs, end, buffer.get(), cmp);
 			break;
 		}
 
@@ -116,14 +117,13 @@ void timsort(It begin, It end, Cmp cmp) {
 			++run_length;
 		}
 
-		keep_invariant(runs, it, cmp);
+		keep_invariant(runs, it, buffer.get(), cmp);
 	}
 
 	// is this correct?
 	// fold with merging
-	for(auto i = runs.size() - 1; i > 0; --i) {
-		merge(runs[i - 1], runs[i], end, cmp);
-	}
+	for(auto i = runs.size() - 1; i > 0; --i)
+		merge(runs[i - 1], runs[i], end, buffer.get(), cmp);
 }
 
 template <typename It>
