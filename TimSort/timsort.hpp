@@ -27,7 +27,7 @@ class TimSortClass {
 		const auto RSize = end - middle;
 
 		if(LSize <= RSize) { // left to right merging
-			move(begin, middle, merge_buffer_.get());
+			std::move(begin, middle, merge_buffer_.get());
 
 			auto i = merge_buffer_.get();
 			auto buffer_end = i + LSize;
@@ -38,9 +38,9 @@ class TimSortClass {
 				if(cmp_(*i, *j)) *k++ = std::move(*i++);
 				else *k++ = std::move(*j++);
 			}
-			move(i, buffer_end, k);
+			std::move(i, buffer_end, k);
 		} else { // right to left merging
-			move(middle, end, merge_buffer_.get());
+			std::move(middle, end, merge_buffer_.get());
 
 			auto i = middle - 1;
 			auto buffer_start = merge_buffer_.get();
@@ -51,7 +51,7 @@ class TimSortClass {
 				if(cmp_(*j, *i)) *--k = std::move(*i--);
 				else *--k = std::move(*j--);
 			}
-			move_backward(buffer_start, j + 1, k);
+			std::move_backward(buffer_start, j + 1, k);
 		}
 	}
 
@@ -103,7 +103,7 @@ class TimSortClass {
 				++run_length;
 			}
 
-			if(decreasing) reverse(run_begin, it);
+			if(decreasing) std::reverse(run_begin, it);
 
 			while(it != end && run_length < MinRunLength) {
 				// binary insertion sort
