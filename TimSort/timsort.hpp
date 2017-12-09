@@ -37,13 +37,13 @@ void merge(It begin, It middle, It end, Cmp cmp) {
 		auto i = middle - 1;
 		auto buffer_start = buffer.get();
 		auto j = buffer_start + RSize - 1;
-		auto k = end - 1;
+		auto k = end;
 
 		while(i != begin - 1) {
-			if(cmp(*j, *i)) *k-- = std::move(*i--);
-			else *k-- = std::move(*j--);
+			if(cmp(*j, *i)) *--k = std::move(*i--);
+			else *--k = std::move(*j--);
 		}
-		move_backward(buffer_start, j + 1, k + 1);
+		move_backward(buffer_start, j + 1, k);
 	}
 }
 
@@ -65,16 +65,11 @@ void keep_invariant(std::vector<It>& runs, It end, Cmp cmp) {
 		auto z_len = y - z;
 
 		if(z_len <= y_len + x_len) {
-			//if(x_len < z_len) {
-//				merge(y, x, end, cmp);
-//				runs.pop_back();
-//			} else {
-				merge(z, y, x, cmp);
-				runs.erase(runs.end() - 2);
-//			}
+			merge(z, y, x, cmp);
+			runs.erase(runs.end() - 2);
 		} else if(y_len <= x_len) {
-				merge(y, x, end, cmp);
-				runs.pop_back();
+			merge(y, x, end, cmp);
+			runs.pop_back();
 		} else {
 			break;
 		}

@@ -34,10 +34,11 @@ void time_test(std::vector<T> stuff, void (*sort_function)(typename std::vector<
 int main() {
 	std::random_device rd;
 	std::mt19937_64 rng(rd());
+	using T = decltype(rng());
 
 	for(auto N: {10, 100, 1000, 10000, 100000, 1000000}) {
 		std::cout << "N = " << N << '\n';
-		std::vector<decltype(rng())> numbers;
+		std::vector<T> numbers;
 
 		{
 			decltype(numbers)::value_type x = 0;
@@ -58,7 +59,7 @@ int main() {
 			std::qsort(&numbers[0], numbers.size(),
 					sizeof(numbers[0]),
 					[] (const void* x, const void* y) -> int {
-						return *reinterpret_cast<const unsigned*>(x) < *reinterpret_cast<const unsigned*>(y);
+						return *reinterpret_cast<const T*>(x) < *reinterpret_cast<const T*>(y);
 					});
 			auto end = std::chrono::system_clock::now();
 
