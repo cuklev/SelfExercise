@@ -20,8 +20,8 @@ class TimSortClass {
 
 	// TODO: galloping
 	void merge(It begin, It middle, It end) {
-		begin = upper_bound(begin, middle, *middle, cmp_);
-		end = upper_bound(middle, end, *(middle - 1), cmp_);
+		begin = std::upper_bound(begin, middle, *middle, cmp_);
+		end = std::lower_bound(middle, end, *(middle - 1), cmp_);
 
 		const auto LSize = middle - begin;
 		const auto RSize = end - middle;
@@ -47,7 +47,7 @@ class TimSortClass {
 			auto j = buffer_start + RSize - 1;
 			auto k = end;
 
-			while(i != begin - 1) {
+			while(i + 1 != begin) {
 				if(cmp_(*j, *i)) *--k = std::move(*i--);
 				else *--k = std::move(*j--);
 			}
@@ -81,7 +81,7 @@ class TimSortClass {
 		if(N < 2) return; // nothing to sort
 
 		// buffer for merging, allocate once
-		merge_buffer_ = std::make_unique<T[]>(N / 2);
+		merge_buffer_ = std::make_unique<T[]>(N >> 1);
 
 		const size_t MinRunLength = get_min_run_length(N);
 
