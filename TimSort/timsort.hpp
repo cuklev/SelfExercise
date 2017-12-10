@@ -57,17 +57,14 @@ class TimSortClass {
 
 	void keep_invariant(It end) {
 		while(runs_.size() >= 3) {
-			auto x = runs_.back();
+			auto x = runs_[runs_.size() - 1];
 			auto y = runs_[runs_.size() - 2];
 			auto z = runs_[runs_.size() - 3];
-			auto x_len = end - x;
-			auto y_len = x - y;
-			auto z_len = y - z;
 
-			if(z_len <= y_len + x_len) {
+			if(y - z <= end - y) {
 				merge(z, y, x);
 				runs_.erase(runs_.end() - 2);
-			} else if(y_len <= x_len) {
+			} else if(x - y <= end - x) {
 				merge(y, x, end);
 				runs_.pop_back();
 			} else {
