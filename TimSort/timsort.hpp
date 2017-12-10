@@ -64,9 +64,6 @@ class TimSortClass {
 			if(y - z <= end - y) {
 				merge(z, y, x);
 				runs_.erase(runs_.end() - 2);
-			} else if(x - y <= end - x) {
-				merge(y, x, end);
-				runs_.pop_back();
 			} else {
 				break;
 			}
