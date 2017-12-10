@@ -61,12 +61,11 @@ class TimSortClass {
 			auto y = runs_[runs_.size() - 2];
 			auto z = runs_[runs_.size() - 3];
 
-			if(y - z <= end - y) {
-				merge(z, y, x);
-				runs_.erase(runs_.end() - 2);
-			} else {
+			if(y - z > end - y)
 				break;
-			}
+
+			merge(z, y, x);
+			runs_.erase(runs_.end() - 2);
 		}
 	}
 
