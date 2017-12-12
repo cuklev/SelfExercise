@@ -4,6 +4,8 @@
 #include <memory>
 #include <vector>
 
+namespace sortings {
+
 inline size_t get_min_run_length(size_t n) {
 	while(n >= (1 << 6))
 		n = (n + 1) >> 1;
@@ -133,4 +135,6 @@ template <typename It>
 void timsort(It begin, It end) {
 	using T = std::remove_reference_t<decltype(*begin)>;
 	timsort(begin, end, std::less<T>());
+}
+
 }

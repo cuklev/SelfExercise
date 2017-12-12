@@ -44,7 +44,7 @@ int main() {
 
 		time_test(numbers, std::sort);
 		time_test(numbers, std::stable_sort);
-		time_test(numbers, timsort);
+		time_test(numbers, sortings::timsort);
 
 		{ // qsort is ugly
 			auto begin = std::chrono::system_clock::now();
