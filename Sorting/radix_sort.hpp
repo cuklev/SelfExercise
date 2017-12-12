@@ -30,42 +30,42 @@ void radix_sort(It begin, It end) {
 	auto counts = std::make_unique<size_t[][1 << 16]>(sizeof(T) / 2);
 
 	for(auto it = begin; it != end; ++it) {
-		++counts.get()[0][*it & 0xFFFF];
+		++counts[0][*it & 0xFFFF];
 		if constexpr(sizeof(T) > 2)
-			++counts.get()[1][(*it >> 16) & 0xFFFF];
+			++counts[1][(*it >> 16) & 0xFFFF];
 		if constexpr(sizeof(T) > 4)
-			++counts.get()[2][(*it >> 32) & 0xFFFF];
+			++counts[2][(*it >> 32) & 0xFFFF];
 		if constexpr(sizeof(T) > 6)
-			++counts.get()[3][*it >> 48];
+			++counts[3][*it >> 48];
 		if constexpr(sizeof(T) > 8)
 			throw "not implemented for such types";
 	}
 
-	for(int i = 0; i < 4; ++i) {
+	for(int i = 0; i < sizeof(T) / 2; ++i) {
 		size_t sum = 0;
-		for(auto& x: counts.get()[i]) {
+		for(auto& x: counts[i]) {
 			size_t y = x;
 			x = sum;
 			sum += y;
 		}
 	}
 
-	spread_to_buckets(begin, end, 0, counts.get()[0], buf_b);
+	spread_to_buckets(begin, end, 0, counts[0], buf_b);
 	if constexpr(sizeof(T) <= 2) {
 		std::move(buf_b, buf_e, begin);
 		return;
 	}
 
-	spread_to_buckets(buf_b, buf_e, 16, counts.get()[1], begin);
+	spread_to_buckets(buf_b, buf_e, 16, counts[1], begin);
 	if constexpr(sizeof(T) <= 4) return;
 
-	spread_to_buckets(begin, end, 32, counts.get()[2], buf_b);
+	spread_to_buckets(begin, end, 32, counts[2], buf_b);
 	if constexpr(sizeof(T) <= 6) {
 		std::move(buf_b, buf_e, begin);
 		return;
 	}
 
-	spread_to_buckets(buf_b, buf_e, 48, counts.get()[3], begin);
+	spread_to_buckets(buf_b, buf_e, 48, counts[3], begin);
 }
 
 }
