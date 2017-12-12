@@ -38,17 +38,9 @@ int main() {
 
 	for(auto N: {10, 100, 1000, 10000, 100000, 1000000}) {
 		std::cout << "N = " << N << '\n';
+
 		std::vector<T> numbers;
-
-		{
-			decltype(numbers)::value_type x = 0;
-			generate_n(back_inserter(numbers), N, [&x] {return ++x;});
-		}
-		shuffle(numbers.begin(), numbers.end(), rng);
-
-		time_test(numbers, timsort);
-
-		generate(numbers.begin(), numbers.end(), rng);
+		generate_n(back_inserter(numbers), N, rng);
 
 		time_test(numbers, std::sort);
 		time_test(numbers, std::stable_sort);
