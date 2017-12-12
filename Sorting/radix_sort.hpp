@@ -41,7 +41,7 @@ void radix_sort(It begin, It end) {
 			throw "not implemented for such types";
 	}
 
-	for(int i = 0; i < sizeof(T) / 2; ++i) {
+	for(size_t i = 0; i < sizeof(T) / 2; ++i) {
 		size_t sum = 0;
 		for(auto& x: counts[i]) {
 			size_t y = x;
