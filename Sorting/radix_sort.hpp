@@ -7,68 +7,13 @@
 
 namespace sortings {
 
-template <typename T, size_t BC>
-class Buckets {
-	private:
-		std::unique_ptr<std::queue<T>[]> buckets_ = std::make_unique<std::queue<T>[]>(BC);
-
-		// iterator-like thingy
-		class iterator {
-			private:
-				std::queue<T>* curr_bucket_;
-				std::queue<T>* const end_bucket_;
-
-			public:
-				iterator(std::queue<T>* c, std::queue<T>* e)
-					: curr_bucket_(c)
-					, end_bucket_(e) {}
-
-				iterator& operator++() {
-					while(curr_bucket_ < end_bucket_ && curr_bucket_->empty())
-						++curr_bucket_;
-					return *this;
-				}
-
-				T operator*() {
-					T x = curr_bucket_->front();
-					curr_bucket_->pop();
-					return x;
-				}
-
-				bool operator!=(iterator const& other) {
-					return curr_bucket_ != other.curr_bucket_;
-				}
-		};
-
-	public:
-		iterator begin() {
-			auto ptr = buckets_.get();
-			iterator it {ptr, ptr + BC};
-			return ++it;
-		}
-
-		iterator end() {
-			auto ptr = buckets_.get() + BC;
-			return {ptr, ptr};
-		}
-
-		void push(size_t index, T number) {
-			buckets_[index].push(number);
-		}
-};
-
-template <typename It, typename F>
-auto spread_to_buckets(It begin, It const end, F get_bucket) {
-	using T = std::remove_reference_t<decltype(*begin)>;
-	Buckets<T, 1 << 16> new_buckets;
-
+template <typename ItSrc, typename ItDst>
+void spread_to_buckets(ItSrc begin, ItSrc const end, int shift_count, size_t* offsets, ItDst output) {
 	for(; begin != end; ++begin) {
-		auto number = *begin;
-		auto index = get_bucket(number);
-		new_buckets.push(index, number);
+		auto index = (*begin >> shift_count) & 0xFFFF;
+		*(output + offsets[index]) = *begin;
+		++offsets[index];
 	}
-
-	return new_buckets;
 }
 
 template <typename It>
@@ -78,18 +23,35 @@ void radix_sort(It begin, It end) {
 	static_assert(std::is_integral_v<T>);
 	static_assert(std::is_unsigned_v<T>);
 
-	if(end - begin < 2) return; // nothing to do
+	const auto N = end - begin;
+	if(N < 2) return; // nothing to do
 
-	auto buckets = spread_to_buckets(begin, end,
-			[](T x) { return x & 0xFFFF; });
+	auto buffer = std::make_unique<T[]>(N);
+	const auto buf_b = buffer.get();
+	const auto buf_e = buffer.get() + N;
 
-	for(unsigned i = 12; i < sizeof(T) * 8; i += 12) {
-		buckets = spread_to_buckets(buckets.begin(), buckets.end(),
-				[i](T x) { return (x >> i) & 0xFFF; });
+	auto counts = std::make_unique<size_t[][1 << 16]>(4);
+
+	for(auto it = begin; it != end; ++it) {
+		++counts.get()[0][*it & 0xFFFF];
+		++counts.get()[1][(*it >> 16) & 0xFFFF];
+		++counts.get()[2][(*it >> 32) & 0xFFFF];
+		++counts.get()[3][*it >> 48];
 	}
 
-	for(auto it = buckets.begin(); begin != end; ++it)
-		*begin++ = *it;
+	for(int i = 0; i < 4; ++i) {
+		size_t sum = 0;
+		for(auto& x: counts.get()[i]) {
+			size_t y = x;
+			x = sum;
+			sum += y;
+		}
+	}
+
+	spread_to_buckets(begin, end, 0, counts.get()[0], buffer.get());
+	spread_to_buckets(buf_b, buf_e, 16, counts.get()[1], begin);
+	spread_to_buckets(begin, end, 32, counts.get()[2], buffer.get());
+	spread_to_buckets(buf_b, buf_e, 48, counts.get()[3], begin);
 }
 
 }
