@@ -1,4 +1,5 @@
 #include "timsort.hpp"
+#include "radix_sort.hpp"
 #include <iostream>
 #include <iomanip>
 #include <algorithm>
@@ -19,7 +20,7 @@ void time_test(std::vector<T> stuff, void (*sort_function)(typename std::vector<
 	auto end = std::chrono::system_clock::now();
 
 	std::chrono::duration<double> duration = end - begin;
-	std::cout << duration.count() << '\n';
+	std::cout << duration.count() << "s\n";
 
 	assert(stuff == orig_stuff);
 }
@@ -36,19 +37,16 @@ int main() {
 	std::mt19937_64 rng(rd());
 	using T = decltype(rng());
 
-	for(auto N: {10, 100, 1000, 10000, 100000, 1000000}) {
+	for(const size_t N: {10, 100, 1000, 10000, 100000, 1000000}) {
 		std::cout << "N = " << N << '\n';
 
 		std::vector<T> numbers;
 		generate_n(back_inserter(numbers), N, rng);
 
-		time_test(numbers, std::sort);
-		time_test(numbers, std::stable_sort);
-		time_test(numbers, sortings::timsort);
-
 		{ // qsort is ugly
+			auto numbers_copy = numbers;
 			auto begin = std::chrono::system_clock::now();
-			std::qsort(&numbers[0], numbers.size(),
+			qsort(numbers_copy.data(), numbers.size(),
 					sizeof(numbers[0]),
 					[] (const void* x, const void* y) -> int {
 						return *reinterpret_cast<const T*>(x) < *reinterpret_cast<const T*>(y);
@@ -60,7 +58,12 @@ int main() {
 				<< std::left
 				<< std::setw(20)
 				<< "qsort" << ' '
-				<< duration.count() << '\n';
+				<< duration.count() << "s\n";
 		}
+
+		time_test(numbers, std::sort);
+		time_test(numbers, std::stable_sort);
+		time_test(numbers, sortings::timsort);
+		time_test(numbers, sortings::radix_sort);
 	}
 }
