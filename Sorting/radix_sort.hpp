@@ -1,8 +1,5 @@
 #pragma once
 
-#include <algorithm>
-#include <type_traits>
-#include <queue>
 #include <memory>
 
 namespace sortings {
