@@ -22,8 +22,8 @@ void time_test(std::vector<T> stuff, const char* name, void (*sort_function)(It,
 	sort_function(stuff.begin(), stuff.end());
 	auto end = std::chrono::system_clock::now();
 
-	std::chrono::duration<double> duration = end - begin;
-	std::cout << duration.count() << "s\n";
+	std::chrono::duration<double, std::milli> duration = end - begin;
+	std::cout << duration.count() << "ms\n";
 
 	assert(stuff == orig_stuff);
 
@@ -35,7 +35,7 @@ void time_test(std::vector<T> stuff, const char* name, void (*sort_function)(It,
 	duration = end - begin;
 	std::cout
 		<< std::left << std::setw(20) << "   on sorted ->"
-		<< duration.count() << "s\n";
+		<< duration.count() << "ms\n";
 
 	assert(stuff == orig_stuff);
 }
