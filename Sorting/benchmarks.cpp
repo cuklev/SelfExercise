@@ -45,7 +45,7 @@ void _qsort(It begin, It end) {
 	using T = std::remove_reference_t<decltype(*begin)>;
 	qsort(&*begin, end - begin, sizeof(T),
 			[] (const void* x, const void* y) -> int {
-				return *reinterpret_cast<const T*>(x) > *reinterpret_cast<const T*>(y);
+				return *reinterpret_cast<const T*>(x) - *reinterpret_cast<const T*>(y);
 			});
 }
 
